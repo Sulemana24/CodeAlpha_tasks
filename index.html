@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Age Calculator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+<button id="themeToggle" class="toggle-btn">🌙 Toggle Theme</button>
+
+  <div class="container">
+    <h1>Age Calculator</h1>
+    <form id="ageForm">
+      <label for="date">Enter your Date of Birth:</label>
+      <input type="date" id="date" required>
+      <button type="button" onclick="calculateAge()" class="btn">Calculate</button>
+    </form>
+    <div id="age"></div>
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
