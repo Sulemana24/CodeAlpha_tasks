@@ -1,26 +1,47 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Age Calculator</title>
+  <title>Eazzy Task</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 <body>
-<button id="themeToggle" class="toggle-btn">🌙 Toggle Theme</button>
-
   <div class="container">
-    <h1>Age Calculator</h1>
-    <form id="ageForm">
-      <label for="date">Enter your Date of Birth:</label>
-      <input type="date" id="date" required>
-      <button type="button" onclick="calculateAge()" class="btn">Calculate</button>
-    </form>
-    <div id="age"></div>
+    <h1>Eazzy Task</h1>
+    <label for="category">Category</label>
+  <select id="category">
+    <option value="Personal">Personal</option>
+    <option value="Work">Work</option>
+    <option value="School">School</option>
+    <option value="Others">Others</option>
+  </select>
+
+  <div class="taskContainer">
+      <div class="inputContainer">
+      <label for="task">Task</label>
+      <input type="text" id="task" placeholder="Enter a task please">
+      <label for="dueDate">Due Date</label>
+      <input type="date" id="dueDate">
+      </div>
+      <button onclick="displayTask()" class="btn1">Add Task</button>
   </div>
+  <select id="sortOption">
+  <option value="default">Sort by</option>
+  <option value="dueDate">Due Date</option>
+  <option value="completed">Completed</option>
+  </select>
+  <div class="list" id="taskList">  
+  </div>
+
+  <button class="btn1" onclick="exportCSV()">Export CSV</button>
+  <button class="btn1" onclick="exportPDF()">Export PDF</button>
 
 
   <script src="script.js"></script>
+
 </body>
 </html>

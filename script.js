@@ -1,113 +1,165 @@
-let countdownInterval;
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
-function calculateAge() {
-  const dateInput = document.getElementById("date").value;
-  const output = document.getElementById("age");
-  output.innerText = "";
 
-  if (!dateInput) {
-    output.innerText = "Please enter a valid date.";
+window.onload = function () {
+  renderAllTasks();
+};
+
+
+function displayTask() {
+  const taskInput = document.getElementById('task');
+  const dateInput = document.getElementById('dueDate');
+
+  const taskText = taskInput.value.trim();
+  const dueDate = dateInput.value;
+
+  if (taskText === '') {
+    alert('Please enter a task!');
     return;
   }
 
-  const birthDate = new Date(dateInput);
-  const currentDate = new Date();
+  const categoryInput = document.getElementById('category');
+  const category = categoryInput.value;
 
-  if (birthDate > currentDate) {
-    output.innerText = "Date of birth cannot be in the future.";
-    return;
-  }
+  const taskObj = {
+  id: Date.now(),
+  text: taskText,
+  due: dueDate,
+  completed: false,
+  category: category
+  };
 
-  let years = currentDate.getFullYear() - birthDate.getFullYear();
-  let months = currentDate.getMonth() - birthDate.getMonth();
-  let days = currentDate.getDate() - birthDate.getDate();
 
-  if (days < 0) {
-    months--;
-    const prevMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-    days += prevMonth.getDate();
-  }
+  tasks.push(taskObj);
+  saveTasks();
+  renderTask(taskObj);
 
-  if (months < 0) {
-    months += 12;
-    years--;
-  }
+  taskInput.value = '';
+  dateInput.value = '';
+  document.getElementById('sortOption').value = 'default';
 
-  if (countdownInterval) clearInterval(countdownInterval);
-
-  function updateCountdown() {
-    const now = new Date();
-    let nextBirthday = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-
-    if (nextBirthday < now) {
-      nextBirthday.setFullYear(now.getFullYear() + 1);
-    }
-
-    const timeDiff = nextBirthday - now;
-
-    if (timeDiff <= 0) {
-      output.innerHTML = `<strong>🎉 Happy Birthday! 🎂</strong><br>You are now <strong>${years + 1}</strong> years old!`;
-      runConfetti();
-      clearInterval(countdownInterval);
-      return;
-    }
-
-    const daysLeft = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    const hoursLeft = Math.floor((timeDiff / (1000 * 60 * 60)) % 24);
-    const minutesLeft = Math.floor((timeDiff / (1000 * 60)) % 60);
-    const secondsLeft = Math.floor((timeDiff / 1000) % 60);
-
-    let message = `Your age is: <strong>${years}</strong> year(s), <strong>${months}</strong> month(s), and <strong>${days}</strong> day(s).`;
-
-    message += `<br><br>⏳ <strong>${daysLeft}</strong> days, <strong>${hoursLeft}</strong> hours, <strong>${minutesLeft}</strong> minutes, <strong>${secondsLeft}</strong> seconds until your next birthday.`;
-
-    if (daysLeft <= 30) {
-      message += `<br><br>🎉 You're almost <strong>${years + 1}</strong>!`;
-    }
-
-    output.innerHTML = message;
-  }
-
-  updateCountdown();
-  countdownInterval = setInterval(updateCountdown, 1000);
 }
 
-function runConfetti() {
-  const duration = 5 * 1000;
-  const end = Date.now() + duration;
 
-  (function frame() {
-    confetti({
-      particleCount: 5,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 },
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function renderAllTasks() {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
+  tasks.forEach(task => renderTask(task));
+}
+
+function renderTask(taskObj) {
+  const taskList = document.getElementById('taskList');
+
+  const taskItem = document.createElement('div');
+  taskItem.className = 'taskItem';
+  taskItem.setAttribute('data-id', taskObj.id);
+
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = taskObj.completed;
+  checkbox.onclick = () => toggleComplete(taskObj.id);
+
+  const taskContent = document.createElement('p');
+  taskContent.textContent = `${taskObj.text} [${taskObj.category}] - Due: ${taskObj.due || 'No date'}`;
+  taskContent.className = taskObj.completed ? 'completed' : '';
+  taskContent.contentEditable = false;
+
+  const editBtn = document.createElement('button');
+  editBtn.textContent = 'Edit';
+  editBtn.className = 'editBtn';
+  editBtn.onclick = () => {
+    taskContent.contentEditable = true;
+    taskContent.focus();
+    editBtn.textContent = 'Save';
+    editBtn.onclick = () => {
+      taskObj.text = taskContent.textContent.split(' - Due:')[0].trim();
+      taskContent.contentEditable = false;
+      editBtn.textContent = 'Edit';
+      saveTasks();
+      renderAllTasks();
+    };
+  };
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.textContent = 'Delete';
+  deleteBtn.className = 'deleteBtn';
+  deleteBtn.onclick = () => deleteTask(taskObj.id);
+
+  taskItem.appendChild(checkbox);
+  taskItem.appendChild(taskContent);
+  taskItem.appendChild(editBtn);
+  taskItem.appendChild(deleteBtn);
+
+  taskList.appendChild(taskItem);
+}
+
+function toggleComplete(id) {
+  const task = tasks.find(t => t.id === id);
+  task.completed = !task.completed;
+  saveTasks();
+  renderAllTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks();
+  renderAllTasks();
+}
+document.getElementById('sortOption').addEventListener('change', function () {
+  const value = this.value;
+  let sortedTasks = [...tasks]; 
+  if (value === 'dueDate') {
+    sortedTasks.sort((a, b) => {
+      if (!a.due) return 1; 
+      if (!b.due) return -1;
+      return new Date(a.due) - new Date(b.due);
     });
-    confetti({
-      particleCount: 5,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 },
-    });
+  } else if (value === 'completed') {
+    sortedTasks.sort((a, b) => a.completed - b.completed); 
+  }
 
-    if (Date.now() < end) {
-      requestAnimationFrame(frame);
-    }
-  })();
-}
-
-const toggleBtn = document.getElementById("themeToggle");
-const currentTheme = localStorage.getItem("theme");
-
-if (currentTheme === "dark") {
-  document.body.classList.add("dark-mode");
-  toggleBtn.innerText = "☀️ Toggle Theme";
-}
-
-toggleBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark-mode");
-
-  const isDark = document.body.classList.contains("dark-mode");
-  toggleBtn.innerText = isDark ? "☀️ Toggle Theme" : "🌙 Toggle Theme";
-  localStorage.setItem("theme", isDark ? "dark" : "light");
+  renderSortedTasks(sortedTasks);
 });
+
+function renderSortedTasks(sortedList) {
+  const taskList = document.getElementById('taskList');
+  taskList.innerHTML = '';
+  sortedList.forEach(task => renderTask(task));
+}
+
+
+function exportCSV() {
+  let csv = 'Task,Due Date,Category,Completed\n';
+  tasks.forEach(task => {
+    csv += `"${task.text}","${task.due}","${task.category}",${task.completed}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'eazzy_tasks.csv';
+  a.click();
+}
+
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFontSize(12);
+  doc.text('Eazzy Task List', 10, 10);
+
+  let y = 20;
+  tasks.forEach(task => {
+    doc.text(`• ${task.text} [${task.category}] - Due: ${task.due || 'No date'} - Completed: ${task.completed ? 'Yes' : 'No'}`, 10, y);
+    y += 10;
+  });
+
+  doc.save('eazzy_tasks.pdf');
+}
+
